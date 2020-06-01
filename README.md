@@ -12,4 +12,4 @@ Given what each guest is ready to pay, you have to compute the restaurants gains
 
 Implement the method **```computeDayGains(nbSeats, payingGuests, guestMovements)```** which returns the gains for the day :
 * the array **```payingGuests```** gives what guests are ready to pay (for example if **```payingGuests(5)```** value is 25, it means that guest with id **5** is ready to pay 25 EUR for the buffet
-* the array **```guestMovements```** gives in order the arrivals and departues of guests. The first time you see an id, it indicates an arrival. The second time you see the same id, it indicates a departure. An arrival is always followed later in the day by a departure.
+* the array **```guestMovements```** gives in order the arrivals and departures of guests. The first time you see an id, it indicates an arrival. The second time you see the same id, it indicates a departure. An arrival is always followed later in the day by a departure.
