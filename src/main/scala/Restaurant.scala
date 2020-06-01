@@ -17,7 +17,6 @@ case class Restaurant(nbSeats: Int) {
         val newState: State =
           state
             .guestEats(oldestQueuingGuest)
-            .guestPays(oldestQueuingGuest, payingGuests)
             .guestLeavesTheQueue(oldestQueuingGuest)
 
         compute(payingGuests, guestMovements, newState)
