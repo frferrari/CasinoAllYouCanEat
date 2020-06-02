@@ -2,7 +2,33 @@ import Casino.GuestId
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 class RestaurantTest extends WordSpec with Matchers {
-  val restaurant: Restaurant = new Restaurant(2)
+  val restaurant: Restaurant = Restaurant(2)
+
+  "A restaurant with 2 seats available" when {
+    "computing the day gains for 2 guests eating for 5 and 10 EUR" should {
+      val payingGuests: Array[Int] = Array(5, 10, 20)
+      val guestMovements: Array[GuestId] = Array(1, 2, 2, 1)
+      "return a day gain of 15 EUR" in {
+        restaurant.computeDayGains(payingGuests, guestMovements) shouldEqual 15
+      }
+    }
+
+    "computing the day gains for 2 guests eating for 5 and 10 EUR and 1 guest queuing/leaving" should {
+      val payingGuests: Array[Int] = Array(5, 10, 20)
+      val guestMovements: Array[GuestId] = Array(1, 2, 3, 3, 2, 1)
+      "return a day gain of 15 EUR" in {
+        restaurant.computeDayGains(payingGuests, guestMovements) shouldEqual 15
+      }
+    }
+
+    "computing the day gains for 2 guests eating for 5 and 10 EUR and 1 guest queuing/eating for 20 EUR" should {
+      val payingGuests: Array[Int] = Array(5, 10, 20)
+      val guestMovements: Array[GuestId] = Array(1, 2, 3, 2, 3, 1)
+      "return a day gain of 35 EUR" in {
+        restaurant.computeDayGains(payingGuests, guestMovements) shouldEqual 35
+      }
+    }
+  }
 
   "A restaurant with 2 seats available" when {
     "given 2 guests for lunch" should {

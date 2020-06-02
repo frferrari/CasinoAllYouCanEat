@@ -242,4 +242,68 @@ class StateTest extends WordSpec with Matchers {
       }
     }
   }
+
+  /**
+   * GUEST STARTS QUEUING
+   */
+
+  "A State with no guests queuing" when {
+    val eatingGuests: List[GuestId] = List(100, 101)
+    val queuingGuests: List[GuestId] = List(105)
+    val haveBeenEatingGuests: List[GuestId] = List(106)
+    val state: State = State(10, eatingGuests = eatingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+
+    "asked to make guest 105 queue" should {
+      "return a new state with only guest 105 queuing" in {
+        state.guestStartsQueuing(105) shouldBe State(10, eatingGuests = eatingGuests, queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+  }
+
+  "A State with guest 105 already queuing" when {
+    val eatingGuests: List[GuestId] = List(100, 101)
+    val queuingGuests: List[GuestId] = List(105)
+    val haveBeenEatingGuests: List[GuestId] = List(106)
+    val state: State = State(10, eatingGuests = eatingGuests, queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+
+    "asked to make guest 108 queue" should {
+      "return a new state with guest 108 added to the queuing guests" in {
+        state.guestStartsQueuing(108) shouldBe State(10, eatingGuests = eatingGuests, queuingGuests = List(105, 108), haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+  }
+
+  /**
+   * GUEST LEAVES THE QUEUE
+   */
+
+  "A State with 2 guests queuing (ids=100, 101)" when {
+    val eatingGuests: List[GuestId] = List(104, 105)
+    val queuingGuests: List[GuestId] = List(100, 101)
+    val haveBeenEatingGuests: List[GuestId] = List(106)
+    val state: State = State(10, eatingGuests = eatingGuests, queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+
+    "asked to make guest 100 leave the queue" should {
+      "return a new state having only guest 101 queuing" in {
+        state.guestLeavesTheQueue(100) shouldBe State(10, eatingGuests = eatingGuests, queuingGuests = List(101), haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+
+    "asked to make guests 100 and 101 leave the queue" should {
+      "return a new state having no guest queuing" in {
+        state
+          .guestLeavesTheQueue(100)
+          .guestLeavesTheQueue(101) shouldBe State(10, eatingGuests = eatingGuests, queuingGuests = List.empty[GuestId], haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+
+    "asked to make guests 100 and 101 and 102 stop queuing" should {
+      "return a new state having no guest eating" in {
+        state
+          .guestLeavesTheQueue(100)
+          .guestLeavesTheQueue(101)
+          .guestLeavesTheQueue(102) shouldBe State(10, eatingGuests = eatingGuests, queuingGuests = List.empty[GuestId], haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+  }
 }
