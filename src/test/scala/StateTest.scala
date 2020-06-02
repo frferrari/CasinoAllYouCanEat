@@ -1,3 +1,4 @@
+import Casino.GuestId
 import org.scalatest.{Matchers, WordSpec}
 
 class StateTest extends WordSpec with Matchers {
@@ -6,7 +7,7 @@ class StateTest extends WordSpec with Matchers {
    */
 
   "A State with 0 guests eating" when {
-    val state: State = new State(0)
+    val state: State = State(0)
 
     "checked if guest 100 is eating" should {
       "return false" in {
@@ -16,7 +17,7 @@ class StateTest extends WordSpec with Matchers {
   }
 
   "A State with 2 guests eating (ids=100 and 101)" when {
-    val state: State = new State(0, List(100, 101))
+    val state: State = State(0, List(100, 101))
 
     "checked if guest 100 is eating" should {
       "return true " in {
@@ -40,7 +41,7 @@ class StateTest extends WordSpec with Matchers {
    */
 
   "A State with 0 guests having been eating" when {
-    val state: State = new State(0)
+    val state: State = State(0)
 
     "checked if guest 100 is coming back" should {
       "return false" in {
@@ -50,7 +51,7 @@ class StateTest extends WordSpec with Matchers {
   }
 
   "A State with 2 guests having been eating (ids=100 and 101)" when {
-    val state: State = new State(0, haveBeenEatingGuests = List(100, 101))
+    val state: State = State(0, haveBeenEatingGuests = List(100, 101))
 
     "checked if guest 100 is coming back" should {
       "return true" in {
@@ -76,7 +77,7 @@ class StateTest extends WordSpec with Matchers {
    */
 
   "A State with 0 guests queuing" when {
-    val state: State = new State(0)
+    val state: State = State(0)
 
     "checked if guest 100 is queuing" should {
       "return false" in {
@@ -92,7 +93,7 @@ class StateTest extends WordSpec with Matchers {
   }
 
   "A State with 2 guests queuing (ids=100 and 101)" when {
-    val state: State = new State(0, queuingGuests = List(100, 101))
+    val state: State = State(0, queuingGuests = List(100, 101))
 
     "checked if guest 100 is queuing" should {
       "return true" in {
@@ -115,6 +116,129 @@ class StateTest extends WordSpec with Matchers {
     "checked if the queue is empty" should {
       "return false" in {
         state.isQueueEmpty shouldEqual false
+      }
+    }
+  }
+
+  /**
+   * GUEST EATS
+   */
+
+  "A State with no guests eating" when {
+    val queuingGuests: List[GuestId] = List(105)
+    val haveBeenEatingGuests: List[GuestId] = List(106)
+    val state: State = State(0, queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+
+    "asked to make guest 100 eat" should {
+      "add guest 100 to its collection of eating guests" in {
+        state
+          .guestEats(100) shouldBe State(0, eatingGuests = List(100), queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+
+    "asked to make guest 100 eat then guest 101 eat" should {
+      "add guest 100 and 101 to its collection of eating guests" in {
+        state
+          .guestEats(100)
+          .guestEats(101) shouldBe State(0, eatingGuests = List(100, 101), queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+  }
+
+  /**
+   * GUEST PAYS
+   */
+
+  "A State with an empty list of guest having been eating" when {
+    val queuingGuests: List[GuestId] = List(105)
+    val eatingGuests: List[GuestId] = List(106)
+    val state: State = State(0, eatingGuests = eatingGuests, queuingGuests = queuingGuests)
+
+    "asked to make guest 2 pay" should {
+      "make this guest pay and update the state totalPayed amount" in {
+        state.guestPays(2, payingGuests = Array(5, 25)) shouldBe State(25, eatingGuests = eatingGuests, queuingGuests = queuingGuests)
+      }
+    }
+    "asked to make guest 2 pay then guest 1 pay" should {
+      "make this 2 guests pay and update the state totalPayed amount" in {
+        state
+          .guestPays(2, payingGuests = Array(5, 25))
+          .guestPays(1, payingGuests = Array(5, 25)) shouldBe State(30, eatingGuests = eatingGuests, queuingGuests = queuingGuests)
+      }
+    }
+  }
+
+  "A State with guest 2 as a coming back guest" when {
+    val queuingGuests: List[GuestId] = List(105)
+    val eatingGuests: List[GuestId] = List(106)
+    val state: State = State(10, haveBeenEatingGuests = List(2), eatingGuests = eatingGuests, queuingGuests = queuingGuests)
+
+    "asked to make guest 2 pay" should {
+      "not make this guest pay and leave the state original totalPayed unchanged" in {
+        state.guestPays(2, payingGuests = Array(5, 25)) shouldBe State(10, haveBeenEatingGuests = List(2), eatingGuests = eatingGuests, queuingGuests = queuingGuests)
+      }
+    }
+    "asked to make guest 2 pay then guest 1 pay" should {
+      "not make guest 2 pay and make guest 1 pay and update the state totalPayed amount" in {
+        state
+          .guestPays(2, payingGuests = Array(5, 25))
+          .guestPays(1, payingGuests = Array(5, 25)) shouldBe State(15, haveBeenEatingGuests = List(2), eatingGuests = eatingGuests, queuingGuests = queuingGuests)
+      }
+    }
+  }
+
+  /**
+   * GUEST STOPS EATING
+   */
+
+  "A State with 2 guests eating (ids=100, 101)" when {
+    val queuingGuests: List[GuestId] = List(105)
+    val haveBeenEatingGuests: List[GuestId] = List(106)
+    val state: State = State(10, eatingGuests = List(100, 101), queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+
+    "asked to make guest 100 stop eating" should {
+      "return a new state having only guest 101 eating" in {
+        state.guestStopsEating(100) shouldBe State(10, eatingGuests = List(101), queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+
+    "asked to make guests 100 and 101 stop eating" should {
+      "return a new state having no guest eating" in {
+        state
+          .guestStopsEating(100)
+          .guestStopsEating(101) shouldBe State(10, eatingGuests = List.empty[GuestId], queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+
+    "asked to make guests 100 and 101 and 102 stop eating" should {
+      "return a new state having no guest eating" in {
+        state
+          .guestStopsEating(100)
+          .guestStopsEating(101)
+          .guestStopsEating(102) shouldBe State(10, eatingGuests = List.empty[GuestId], queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+      }
+    }
+  }
+
+  /**
+   * GUEST HAVE BEEN EATING
+   */
+
+  "A State with guest 106 who have already been eating" when {
+    val eatingGuests: List[GuestId] = List(100, 101)
+    val queuingGuests: List[GuestId] = List(105)
+    val haveBeenEatingGuests: List[GuestId] = List(106)
+    val state: State = State(10, eatingGuests = eatingGuests, queuingGuests = queuingGuests, haveBeenEatingGuests = haveBeenEatingGuests)
+
+    "asked to update for guest 106 having eating" should {
+      "return an unchanged state" in {
+        state.guestHaveBeenEating(106) shouldBe state
+      }
+    }
+
+    "asked to update for guest 100 having eating" should {
+      "return an unchanged state" in {
+        state.guestHaveBeenEating(100) shouldBe State(10, eatingGuests = eatingGuests, queuingGuests = queuingGuests, haveBeenEatingGuests = List(106, 100))
       }
     }
   }
