@@ -5,9 +5,6 @@ case class State(totalPayed: Int,
                  queuingGuests: List[GuestId] = List.empty[GuestId],
                  haveBeenEatingGuests: List[GuestId] = List.empty[GuestId]) {
 
-  def isSeatAvailable(nbSeats: Int): Boolean =
-    this.eatingGuests.size < nbSeats
-
   def isEating(guestId: GuestId): Boolean = eatingGuests.contains(guestId)
 
   def isComingBack(guestId: GuestId): Boolean = haveBeenEatingGuests.contains(guestId)

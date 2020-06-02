@@ -3,15 +3,15 @@ import Casino.GuestId
 
 import scala.annotation.tailrec
 
-case class Restaurant(nbSeats: Int) {
+case class Restaurant(nbSeats: Int, restaurantState: State = State(0)) {
   def computeDayGains(payingGuests: Array[Int], guestMovements: Array[GuestId]): Int = {
-    compute(payingGuests, guestMovements, State(0)).totalPayed
+    compute(payingGuests, guestMovements, restaurantState).totalPayed
   }
 
   @tailrec final def compute(payingGuests: Array[Int], guestMovements: Array[GuestId], state: State = State(0)): State = {
     guestMovements match {
       // a guest that was queuing starts eating
-      case Array(guestId, _*) if !state.isQueueEmpty && state.isSeatAvailable(nbSeats) => {
+      case Array(guestId, _*) if !state.isQueueEmpty && isSeatAvailable(state) => {
         val oldestQueuingGuest: GuestId = state.queuingGuests.head
 
         val newState: State =
@@ -41,7 +41,7 @@ case class Restaurant(nbSeats: Int) {
         compute(payingGuests, nextGuest(guestMovements), newState)
 
       // a guest starts eating
-      case Array(guestId, _*) if state.isSeatAvailable(nbSeats) =>
+      case Array(guestId, _*) if isSeatAvailable(state) =>
         val newState: State =
           state
             .guestEats(guestId)
@@ -49,7 +49,7 @@ case class Restaurant(nbSeats: Int) {
         compute(payingGuests, guestMovements.drop(1), newState)
 
       // a guest starts queuing
-      case Array(guestId, _*) if !state.isSeatAvailable(nbSeats) => {
+      case Array(guestId, _*) if !isSeatAvailable(state) => {
         val newState: State =
           state
             .guestStartsQueuing(guestId)
@@ -64,4 +64,6 @@ case class Restaurant(nbSeats: Int) {
   }
 
   def nextGuest(guestMovements: Array[GuestId]): Array[GuestId] = guestMovements.drop(1)
+
+  def isSeatAvailable(state: State): Boolean = state.eatingGuests.size < nbSeats
 }
